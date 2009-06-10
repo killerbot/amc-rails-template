@@ -77,10 +77,35 @@ end
 
 initializer 'time_formats.rb', 
 %q{# Example time formats
-{ :short_date => "%x", :long_date => "%a, %b %d, %Y" }.each do |k, v|
+{ :short_date => "%x",
+  :long_date => "%a, %b %d, %Y",
+  :long => "%I:%M %p %Z on %A %d %B, %Y",
+  :batch_description => "%Y-%m-%d %H:%M",
+  :message_delivered => "%Y-%m-%d %H:%M",
+  :pearson => "%Y/%m/%d %H:%M:%S",
+  :hm               => Proc.new { |datetime| "#{datetime.strftime('%I').gsub(/^0/, '')}:#{datetime.strftime '%M'} #{datetime.strftime('%p').downcase}"},
+  :hm_dmy           => Proc.new { |datetime| "#{datetime.to_s(:hm)} - #{datetime.to_date.to_s(:dmy)}" },
+  :dmy_hm           => Proc.new { |datetime| "#{datetime.to_date.to_s(:dmy)} #{datetime.to_s(:hm)}" },
+  :hm_dmy_short     => Proc.new { |datetime| "#{datetime.to_s(:hm)} - #{datetime.to_date.to_s(:dmy_short)}" },
+  :dmy_hm_short     => Proc.new { |datetime| "#{datetime.to_date.to_s(:dmy_short)} #{datetime.to_s(:hm)}" },
+  :hm_weekday       => Proc.new { |datetime| "#{datetime.to_s(:hm)} #{datetime.to_date.to_s(:weekday)}"},
+  :weekday_hm       => Proc.new { |datetime| "#{datetime.to_date.to_s(:weekday)} #{datetime.to_s(:hm)}"},
+  :hm_weekday_short => Proc.new { |datetime| "#{datetime.to_s(:hm)}#{datetime.to_date.to_s(:weekday_short)}"}
+ }.each do |k, v|
   ActiveSupport::CoreExtensions::Time::Conversions::DATE_FORMATS.update(k => v)
 end
+
+ActiveSupport::CoreExtensions::Date::Conversions::DATE_FORMATS.merge!(
+  :weekday       => Proc.new { |date| "#{date.strftime '%A'} #{date.to_s(:dmy)}"},
+  :dmy           => Proc.new { |date| "#{date.day.ordinalize} #{date.strftime '%B %Y'}" },
+  :weekday_short => Proc.new { |date| "#{date.strftime '%A'} #{date.to_s(:dmy_short)}"},
+  :dmy_short     => Proc.new { |date| "#{date.day.ordinalize} #{date.strftime '%b %y'}" },
+  :pearson       => "%Y/%m/%d"
+)
+
 }
+
+
 
 file 'app/controllers/application_controller.rb', 
 %q{class ApplicationController < ActionController::Base
